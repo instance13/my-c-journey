@@ -20,14 +20,25 @@ void addBook(char **arr, char *book, size_t i)
   *(*(arr + i) + (MAX_LENGTH - 1)) = '\0'; // Ensure null termination
 }
 
-void makeSpaceForNewBooks(size_t numOfBooks, char **arr, size_t size)
+char **makeSpaceForNewBooks(size_t numOfBooks, char **arr, size_t size)
 {
-  arr = (char **)realloc(*arr, (size + numOfBooks) * sizeof(char *));
+  size_t newSize = size + numOfBooks;
+  char **expandedArr = (char **)realloc(arr, newSize * sizeof(char *));
+  if (expandedArr == NULL)
+  {
+    fprintf(stderr, "Memory allocation failed!\n");
+    return NULL; // or handle error as needed
+  }
+  for (size_t i = 0; i < size; i++)
+  {
+    *(expandedArr + i) = strdup(*(arr+i));
+  }
+  return expandedArr;
 }
 
-void deallocateSpaceForBooks(size_t numOfBooks, char **arr, size_t size)
+char **deallocateSpaceForBooks(size_t numOfBooks, char **arr, size_t size)
 {
-  arr = (char **)realloc(*arr, (size - numOfBooks) * sizeof(char *));
+  return (char **)realloc(*arr, (size - numOfBooks) * sizeof(char *));
 }
 
 void printArr(char **arr, size_t size)
@@ -46,7 +57,7 @@ int main()
   char book[MAX_LENGTH] = "";
 
   printf("Enter a size for your list of books: ");
-  scanf("%zu", size); // Pass the address of size
+  scanf("%zu", &size);
 
   char **arr = allocateArray(size);
 
@@ -85,14 +96,18 @@ int main()
       size_t booksToAdd = 0;
       printf("How many new books will you enter?: ");
       scanf("%zu", &booksToAdd);
-      makeSpaceForNewBooks(booksToAdd, arr, size);
-      for (size_t i = 0; i < booksToAdd; i++)
-      { // Corrected loop condition
+
+      char **expandedArr = makeSpaceForNewBooks(booksToAdd, arr, size);
+
+      // printArr(*&arr, size + booksToAdd);
+
+      for (size_t i = size; i < (booksToAdd + size); i++)
+      {
         printf("Add the new book: ");
-        scanf("%s", book);            // Read the new book name
-        addBook(arr, book, size); // Add at new positions
+        scanf("%s", book);             // Read the new book name
+        addBook(expandedArr, book, i); // Add at new positions
       }
-      printArr(arr, size);
+      // printArr(*&arr, size + booksToAdd); // this is not executing right now
       break;
     }
     case 0:
