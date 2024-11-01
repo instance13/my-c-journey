@@ -24,14 +24,23 @@ char **makeSpaceForNewBooks(size_t numOfBooks, char **arr, size_t size)
 {
   size_t newSize = size + numOfBooks;
   char **expandedArr = (char **)realloc(arr, newSize * sizeof(char *));
+
   if (expandedArr == NULL)
   {
     fprintf(stderr, "Memory allocation failed!\n");
     return NULL; // or handle error as needed
   }
-  for (size_t i = 0; i < size; i++)
+
+  for (char **p = expandedArr + size; p < expandedArr + newSize; p++)
   {
-    *(expandedArr + i) = strdup(*(arr+i));
+    *p = calloc(MAX_LENGTH, sizeof(char)); // Allocate space for new book names
+  }
+
+  for (char **p = expandedArr; p < expandedArr + size; p++)
+  {
+    *(p + size) = calloc(MAX_LENGTH, sizeof(char)); // Allocate space for each book
+    strncpy(*(p + size), *(p), MAX_LENGTH - 1);     // Copy existing book names
+    *(*(p + size) + (MAX_LENGTH - 1)) = '\0';       // Ensure null termination
   }
   return expandedArr;
 }
@@ -53,7 +62,7 @@ void printArr(char **arr, size_t size)
 
 int main()
 {
-  size_t size = 0; // Changed to a regular variable
+  size_t size = 0;
   char book[MAX_LENGTH] = "";
 
   printf("Enter a size for your list of books: ");
@@ -97,26 +106,30 @@ int main()
       printf("How many new books will you enter?: ");
       scanf("%zu", &booksToAdd);
 
+      // Expand the array and update arr
       char **expandedArr = makeSpaceForNewBooks(booksToAdd, arr, size);
+      if (expandedArr == NULL)
+      {
+        fprintf(stderr, "Memory allocation failed!\n");
+        break; 
+      }
 
-      // printArr(*&arr, size + booksToAdd);
+      arr = expandedArr; 
+      size += booksToAdd; 
 
-      for (size_t i = size; i < (booksToAdd + size); i++)
+      // Input new book names
+      for (char **p = arr + (size - booksToAdd); p < arr + size; p++)
       {
         printf("Add the new book: ");
-        scanf("%s", book);             // Read the new book name
-        addBook(expandedArr, book, i); // Add at new positions
+        scanf("%s", book);           // Read the new book name safely
+        addBook(arr, book, p - arr); // Add at new positions using pointer arithmetic
       }
-      // printArr(*&arr, size + booksToAdd); // this is not executing right now
+
+      printArr(arr, size); // Print updated array after adding books
       break;
     }
     case 0:
-      size_t booksToRemove = 0;
-      printf("How many books will you remove?: ");
-      scanf("%zu", &booksToRemove);
-      deallocateSpaceForBooks(booksToRemove, arr, size);
-      break;
-    default:
+      printf("Remove books. ");
       break;
     }
     break;
