@@ -31,14 +31,13 @@ char **makeSpaceForNewBooks(size_t numOfBooks, char **arr, size_t size)
     return NULL; // or handle error as needed
   }
 
-  for (char **p = expandedArr + size; p < expandedArr + newSize; p++)
+  for (char **p = expandedArr + size; p < (expandedArr + newSize); p++)
   {
     *p = calloc(MAX_LENGTH, sizeof(char)); // Allocate space for new book names
   }
 
   for (char **p = expandedArr; p < (expandedArr + size); p++)
   {
-    *(p + size) = calloc(MAX_LENGTH, sizeof(char)); // Allocate space for each book
     strncpy(*(p + size), *(p), MAX_LENGTH - 1);     // Copy existing book names
     *(*(p + size) + (MAX_LENGTH - 1)) = '\0';       // Ensure null termination
   }
@@ -72,6 +71,20 @@ char **deallocateSpaceForBooks(size_t numOfBooks, char **arr, size_t size)
 
   return shrunkArr; // Return the updated pointer
 }
+
+char **removeFromIndex(char **arr, size_t size, int i) {
+  if (arr == NULL)
+  {
+    fprintf(stderr, "You cannot delete from an empty list.\n");
+  }
+  if (size-1 == i) { // check if the only element in the array is being deleted
+    char **newArr = deallocateSpaceForBooks(1, arr, size);
+    printf("Now you have an empty book list.");
+    return newArr;
+  }
+}
+
+char **removeFromName() {}
 
 void printArr(char **arr, size_t size)
 {
@@ -159,6 +172,14 @@ int main()
       arr = newBookList;
       size = size - numOfBooks;
       printArr(arr, size);
+      break;
+    case 3:
+      int i = 0;
+      printf("Enter the index of the book you want to delete (starting at 0; 0 is the first element): ");
+      scanf("%d", &i);
+      removeFromIndex(arr, size, i);
+      break;
+    case 4:
       break;
     }
     break;
