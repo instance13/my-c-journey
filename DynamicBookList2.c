@@ -20,28 +20,16 @@ void addBook(char **arr, char *book, size_t i)
   *(*(arr + i) + (MAX_LENGTH - 1)) = '\0'; // Ensure null termination
 }
 
-char **makeSpaceForNewBooks(size_t numOfBooks, char **arr, size_t size)
+void makeSpaceForNewBooks(char ***arr, size_t ogSize, size_t numOfNewBooks)
 {
-  size_t newSize = size + numOfBooks;
-  char **expandedArr = (char **)realloc(arr, newSize * sizeof(char *));
+  char **expandedList = (char **)realloc(*arr, (ogSize + numOfNewBooks) * sizeof(char *));
 
-  if (expandedArr == NULL)
+  for (size_t i = ogSize; i < (ogSize + numOfNewBooks); i++)
   {
-    fprintf(stderr, "Memory allocation failed!\n");
-    return NULL; // or handle error as needed
+    *(expandedList + i) = calloc(MAX_LENGTH, sizeof(char));
   }
 
-  for (char **p = expandedArr + size; p < (expandedArr + newSize); p++)
-  {
-    *p = calloc(MAX_LENGTH, sizeof(char)); // Allocate space for new book names
-  }
-
-  for (char **p = expandedArr; p < (expandedArr + size); p++)
-  {
-    strncpy(*(p + size), *(p), MAX_LENGTH - 1);     // Copy existing book names
-    *(*(p + size) + (MAX_LENGTH - 1)) = '\0';       // Ensure null termination
-  }
-  return expandedArr;
+  *arr = expandedList;
 }
 
 char **deallocateSpaceForBooks(size_t numOfBooks, char **arr, size_t size)
@@ -143,14 +131,14 @@ int main()
       scanf("%zu", &booksToAdd);
 
       // Expand the array and update arr
-      char **expandedArr = makeSpaceForNewBooks(booksToAdd, arr, size);
-      if (expandedArr == NULL)
+      makeSpaceForNewBooks(&arr, size, booksToAdd);
+
+      if (arr == NULL)
       {
         fprintf(stderr, "Memory allocation failed!\n");
         break;
       }
 
-      arr = expandedArr;
       size += booksToAdd;
 
       // Input new book names
