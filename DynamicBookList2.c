@@ -32,43 +32,45 @@ void makeSpaceForNewBooks(char ***arr, size_t ogSize, size_t numOfNewBooks)
   *arr = expandedList;
 }
 
-char **deallocateSpaceForBooks(size_t numOfBooks, char **arr, size_t size)
+#include <stdlib.h>
+#include <stdio.h>
+
+void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t size)
 {
   // Check if we're trying to remove more books than exist
   if (numOfBooks > size)
   {
     fprintf(stderr, "Cannot remove more books than exist.\n");
-    return arr; // Return original array without changes
+    return; // Exit the function if invalid input
   }
 
   // Free memory for the books being removed
   for (size_t i = size - numOfBooks; i < size; i++)
   {
-    free(*(arr + i)); // Free each book's memory
+    free(*(*(arr)+i)); // *(arr)[i]
   }
 
   // Reallocate to shrink the array
-  char **shrunkArr = (char **)realloc(arr, (size - numOfBooks) * sizeof(char *));
+  char **shrunkArr = (char **)realloc(*arr, (size - numOfBooks) * sizeof(char *));
 
   // Check if realloc was successful
   if (shrunkArr == NULL)
   {
     fprintf(stderr, "Memory allocation failed!\n");
-    return arr; // Return original array if realloc fails
+    return; // Early return to leave the original array unchanged
   }
 
-  return shrunkArr; // Return the updated pointer
+  *arr = shrunkArr; // Update the original pointer to the shrunk array
 }
 
-char **removeFromIndex(char **arr, size_t size, int i) {
+void removeFromIndex(char ***arr, size_t size, int i) {
   if (arr == NULL)
   {
     fprintf(stderr, "You cannot delete from an empty list.\n");
   }
   if (size-1 == i) { // check if the only element in the array is being deleted
-    char **newArr = deallocateSpaceForBooks(1, arr, size);
+    deallocateSpaceForBooks(1, arr, size);
     printf("Now you have an empty book list.");
-    return newArr;
   }
 }
 
@@ -156,8 +158,9 @@ int main()
       size_t numOfBooks = 0;
       printf("How many books do you want to remove from the top?: ");
       scanf("%zu", &numOfBooks);
-      char **newBookList = deallocateSpaceForBooks(numOfBooks, arr, size);
-      arr = newBookList;
+
+      deallocateSpaceForBooks(numOfBooks, &arr, size);
+
       size = size - numOfBooks;
       printArr(arr, size);
       break;
@@ -165,7 +168,7 @@ int main()
       int i = 0;
       printf("Enter the index of the book you want to delete (starting at 0; 0 is the first element): ");
       scanf("%d", &i);
-      removeFromIndex(arr, size, i);
+      removeFromIndex(&arr, size, i);
       break;
     case 4:
       break;
