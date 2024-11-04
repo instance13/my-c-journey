@@ -32,9 +32,6 @@ void makeSpaceForNewBooks(char ***arr, size_t ogSize, size_t numOfNewBooks)
   *arr = expandedList;
 }
 
-#include <stdlib.h>
-#include <stdio.h>
-
 void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t size)
 {
   // Check if we're trying to remove more books than exist
@@ -47,7 +44,7 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t size)
   // Free memory for the books being removed
   for (size_t i = size - numOfBooks; i < size; i++)
   {
-    free(*(*(arr)+i)); // *(arr)[i]
+    free(*(*(arr) + i)); // *(arr)[i]
   }
 
   // Reallocate to shrink the array
@@ -63,14 +60,16 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t size)
   *arr = shrunkArr; // Update the original pointer to the shrunk array
 }
 
-void removeFromIndex(char ***arr, size_t size, int i) {
+void removeFromIndex(char ***arr, size_t size, int i)
+{
   if (arr == NULL)
   {
     fprintf(stderr, "You cannot delete from an empty list.\n");
   }
-  if (size-1 == i) { // check if the only element in the array is being deleted
+  if (size - 1 == 0)
+  { // check if the only element in the array is being deleted
     deallocateSpaceForBooks(1, arr, size);
-    printf("Now you have an empty book list.");
+    printf("Now you have an empty book list.\n");
   }
 }
 
@@ -119,66 +118,81 @@ int main()
   int option;
   scanf("%d", &option);
 
-  switch (option)
+  if (option == 1)
   {
-  case 1:
-    printf("---\n1. Add books to the top.\n2. Remove books from the top.\n3. Remove a specific book by index.\n4. Remove a specific book by name.\n---\n");
-    scanf("%d", &option);
-    switch (option)
+    int subOption = 0;
+    do
     {
-    case 1:
-    {
-      size_t booksToAdd = 0;
-      printf("How many new books will you enter?: ");
-      scanf("%zu", &booksToAdd);
-
-      // Expand the array and update arr
-      makeSpaceForNewBooks(&arr, size, booksToAdd);
-
-      if (arr == NULL)
+      printf("---\n1. Add books to the top.\n2. Remove books from the top.\n3. Remove a specific book by index.\n4. Remove a specific book by name.\n5. Exit editing.\n---\n");
+      scanf("%d", &subOption);
+      switch (subOption)
       {
-        fprintf(stderr, "Memory allocation failed!\n");
+      case 1:
+      {
+        size_t booksToAdd = 0;
+        printf("How many new books will you enter?: ");
+        scanf("%zu", &booksToAdd);
+
+        // Expand the array and update arr
+        makeSpaceForNewBooks(&arr, size, booksToAdd);
+
+        if (arr == NULL)
+        {
+          fprintf(stderr, "Memory allocation failed!\n");
+          break;
+        }
+
+        size += booksToAdd;
+
+        // Input new book names
+        for (char **p = arr + (size - booksToAdd); p < arr + size; p++)
+        {
+          printf("Add the new book: ");
+          scanf("%s", book);           // Read the new book name safely
+          addBook(arr, book, p - arr); // Add at new positions using pointer arithmetic
+        }
+
+        printArr(arr, size); // Print updated array after adding books
         break;
       }
-
-      size += booksToAdd;
-
-      // Input new book names
-      for (char **p = arr + (size - booksToAdd); p < arr + size; p++)
+      case 2:
       {
-        printf("Add the new book: ");
-        scanf("%s", book);           // Read the new book name safely
-        addBook(arr, book, p - arr); // Add at new positions using pointer arithmetic
+        size_t numOfBooks = 0;
+        printf("How many books do you want to remove from the top?: ");
+        scanf("%zu", &numOfBooks);
+
+        deallocateSpaceForBooks(numOfBooks, &arr, size);
+
+        size = size - numOfBooks;
+
+        printArr(arr, size);
+        
+        break;
       }
-
-      printArr(arr, size); // Print updated array after adding books
-      break;
-    }
-    case 2:
-      size_t numOfBooks = 0;
-      printf("How many books do you want to remove from the top?: ");
-      scanf("%zu", &numOfBooks);
-
-      deallocateSpaceForBooks(numOfBooks, &arr, size);
-
-      size = size - numOfBooks;
-      printArr(arr, size);
-      break;
-    case 3:
-      int i = 0;
-      printf("Enter the index of the book you want to delete (starting at 0; 0 is the first element): ");
-      scanf("%d", &i);
-      removeFromIndex(&arr, size, i);
-      break;
-    case 4:
-      break;
-    }
-    break;
-  case 0:
+      case 3:
+      {
+        int i = 0;
+        printf("Enter the index of the book you want to delete (starting at 0; 0 is the first element): ");
+        scanf("%d", &i);
+        removeFromIndex(&arr, size, i);
+        break;
+      }
+      case 4:
+      {
+        break;
+      }
+      case 5:
+      {
+        printf("You finished editing your book list.\n");
+        printArr(arr, size);
+        break;
+      }
+      }
+    } while (subOption != 5);
+  }
+  else
+  {
     printf("Your list remains the same!\n");
     printArr(arr, size);
-    break;
-  default:
-    break;
   }
 }
