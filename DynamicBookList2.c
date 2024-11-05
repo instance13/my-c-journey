@@ -25,11 +25,11 @@ void makeSpaceForNewBooks(char ***arr, size_t *size, size_t numOfNewBooks)
   if (*size == 0)
   {
     *size = numOfNewBooks;
-    allocateArray(size);
+    *arr = allocateArray(size);
   }
   else
   {
-    char **expandedList = (char **)realloc(*arr, (*size + numOfNewBooks) * sizeof(char *)); // sigbus
+    char **expandedList = (char **)realloc(*arr, (*size + numOfNewBooks) * sizeof(char *)); // i got a sigbus here 'cause i was reading garbage values
 
     for (size_t i = *size; i < (*size + numOfNewBooks); i++)
     {
@@ -42,7 +42,7 @@ void makeSpaceForNewBooks(char ***arr, size_t *size, size_t numOfNewBooks)
 
 void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t *size)
 {
-  // Check if we're trying to remove more books than exist
+  // Check: remove more books than exist
   if (numOfBooks > *size)
   {
     fprintf(stderr, "Cannot remove more books than exist.\n");
@@ -99,7 +99,7 @@ void printArr(char **arr, size_t *size)
 int main()
 {
   // size_t *size = 0; this sets the pointer to null and lead to segmentation fault errors later.
-  size_t *size = calloc(1, sizeof(int));
+  size_t *size = calloc(1, sizeof(size_t));
   char book[MAX_LENGTH] = "";
 
   printf("Enter a size for your list of books: ");
@@ -166,8 +166,6 @@ int main()
         scanf("%zu", &numOfBooks);
 
         deallocateSpaceForBooks(numOfBooks, &arr, size);
-
-        size = size - numOfBooks;
 
         printArr(arr, size);
 
