@@ -16,7 +16,7 @@ char **allocateArray(size_t *size)
 
 void addBook(char **arr, char *book, size_t i)
 {
-  strncpy(*(arr + i), book, MAX_LENGTH - 1);
+  strncpy(*(arr + i), book, MAX_LENGTH - 1); //segmentation fault -> something like out of bounds error
   *(*(arr + i) + (MAX_LENGTH - 1)) = '\0'; // Ensure null termination
 }
 
@@ -29,7 +29,7 @@ void makeSpaceForNewBooks(char ***arr, size_t *size, size_t numOfNewBooks)
   }
   else
   {
-    char **expandedList = (char **)realloc(*arr, (*size + numOfNewBooks) * sizeof(char *)); // i got a sigbus here 'cause i was reading garbage values
+    char **expandedList = (char **)realloc(*arr, (*size + numOfNewBooks) * sizeof(char *)); // i got a sigbus error here 'cause i was reading garbage values
 
     for (size_t i = *size; i < (*size + numOfNewBooks); i++)
     {
@@ -46,7 +46,13 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t *size)
   if (numOfBooks > *size)
   {
     fprintf(stderr, "Cannot remove more books than exist.\n");
-    return; // Exit the function if invalid input
+    return; 
+  }
+
+  if (*size - 1 == 0) // check if the only element in the array is being deleted: this used to be in the removeByIndex function
+  {
+    *arr = NULL;
+    *size = 0;
   }
 
   // Free memory for the books being removed
@@ -59,11 +65,11 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t *size)
   char **shrunkArr = (char **)realloc(*arr, (*size - numOfBooks) * sizeof(char *));
 
   // Check if realloc was successful
-  if (shrunkArr == NULL)
-  {
-    fprintf(stderr, "Memory allocation failed!\n");
-    return; // Early return to leave the original array unchanged
-  }
+  // if (shrunkArr == NULL)
+  // {
+  //   fprintf(stderr, "Memory allocation failed!\n");
+  //   return;
+  // }
 
   *arr = shrunkArr; // Update the original pointer to the shrunk array
   *size = *size - numOfBooks;
@@ -71,16 +77,21 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t *size)
 
 void removeFromIndex(char ***arr, size_t *size, int i)
 {
-  if (arr == NULL)
+  if (arr == NULL || *size == 0)
   {
     fprintf(stderr, "You cannot delete from an empty list.\n");
+    return;
   }
-  if (*size - 1 == 0)
-  { // check if the only element in the array is being deleted
 
+  if (i == *size-1)
+  {
     deallocateSpaceForBooks(1, arr, size);
-    *size = 0;
-    printf("Now you have an empty book list.\n");
+    return;
+  }
+
+  if (i == 0)
+  {
+    printf("Not implemented.\n");
   }
 }
 
@@ -88,12 +99,19 @@ void removeFromName() {}
 
 void printArr(char **arr, size_t *size)
 {
-  printf("---\nThis is your list of books right now:\n");
-  for (size_t i = 0; i < *size; i++)
+  if (arr == NULL)
   {
-    printf(" - %s\n", *(arr + i));
+    printf("Your list is empty. Nothing to show for now!\n");
   }
-  printf("---\n");
+  else
+  {
+    printf("---\nThis is your list of books right now:\n");
+    for (size_t i = 0; i < *size; i++)
+    {
+      printf(" - %s\n", *(arr + i));
+    }
+    printf("---\n");
+  }
 }
 
 int main()
@@ -145,18 +163,17 @@ int main()
         printf("How many new books will you enter?: ");
         scanf("%zu", &booksToAdd);
 
-        // Expand the array and update arr
         makeSpaceForNewBooks(&arr, size, booksToAdd);
 
         // Input new book names
         for (char **p = arr + (*size - booksToAdd); p < arr + *size; p++)
         {
           printf("Add the new book: ");
-          scanf("%s", book);           // Read the new book name safely
+          scanf("%s", book);
           addBook(arr, book, p - arr); // Add at new positions using pointer arithmetic
         }
 
-        printArr(arr, size); // Print updated array after adding books
+        printArr(arr, size);
         break;
       }
       case 2:
@@ -177,6 +194,7 @@ int main()
         printf("Enter the index of the book you want to delete (starting at 0; 0 is the first element): ");
         scanf("%d", &i);
         removeFromIndex(&arr, size, i);
+        printArr(arr, size);
         break;
       }
       case 4:
