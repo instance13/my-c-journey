@@ -60,7 +60,7 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t size)
   *arr = shrunkArr; // Update the original pointer to the shrunk array
 }
 
-void removeFromIndex(char ***arr, size_t size, int i)
+void removeFromIndex(char ***arr, size_t *size, int i)
 {
   if (arr == NULL)
   {
@@ -68,7 +68,8 @@ void removeFromIndex(char ***arr, size_t size, int i)
   }
   if (size - 1 == 0)
   { // check if the only element in the array is being deleted
-    deallocateSpaceForBooks(1, arr, size);
+    *arr = NULL;
+    *size = 0;
     printf("Now you have an empty book list.\n");
   }
 }
@@ -133,14 +134,17 @@ int main()
         printf("How many new books will you enter?: ");
         scanf("%zu", &booksToAdd);
 
+        printArr(arr, size);
+
+        printf("Arr is null: %d\n", arr==NULL);
+        printf("Size: %d\n", size);
+
+        if (arr == NULL) {
+          size = 0;
+        }
+
         // Expand the array and update arr
         makeSpaceForNewBooks(&arr, size, booksToAdd);
-
-        if (arr == NULL)
-        {
-          fprintf(stderr, "Memory allocation failed!\n");
-          break;
-        }
 
         size += booksToAdd;
 
@@ -174,7 +178,7 @@ int main()
         int i = 0;
         printf("Enter the index of the book you want to delete (starting at 0; 0 is the first element): ");
         scanf("%d", &i);
-        removeFromIndex(&arr, size, i);
+        removeFromIndex(&arr, &size, i);
         break;
       }
       case 4:
