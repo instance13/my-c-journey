@@ -16,8 +16,8 @@ char **allocateArray(size_t *size)
 
 void addBook(char **arr, char *book, size_t i)
 {
-  strncpy(*(arr + i), book, MAX_LENGTH - 1); //segmentation fault -> something like out of bounds error
-  *(*(arr + i) + (MAX_LENGTH - 1)) = '\0'; // Ensure null termination
+  strncpy(*(arr + i), book, MAX_LENGTH - 1); // segmentation fault -> something like out of bounds error
+  *(*(arr + i) + (MAX_LENGTH - 1)) = '\0';   // Ensure null termination
 }
 
 void makeSpaceForNewBooks(char ***arr, size_t *size, size_t numOfNewBooks)
@@ -25,18 +25,19 @@ void makeSpaceForNewBooks(char ***arr, size_t *size, size_t numOfNewBooks)
   if (*size == 0)
   {
     *size = numOfNewBooks;
+    printf("%zu", *size);
     *arr = allocateArray(size);
   }
   else
   {
-    char **expandedList = (char **)realloc(*arr, (*size + numOfNewBooks) * sizeof(char *)); // i got a sigbus error here 'cause i was reading garbage values
+    *size += numOfNewBooks;
+    char **expandedList = (char **)realloc(*arr, (*size) * sizeof(char *)); // i got a sigbus error here 'cause i was reading garbage values
 
-    for (size_t i = *size; i < (*size + numOfNewBooks); i++)
+    for (size_t i = *size; i < *size; i++)
     {
       *(expandedList + i) = calloc(MAX_LENGTH, sizeof(char));
     }
     *arr = expandedList;
-    *size = *size + numOfNewBooks;
   }
 }
 
@@ -46,13 +47,14 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t *size)
   if (numOfBooks > *size)
   {
     fprintf(stderr, "Cannot remove more books than exist.\n");
-    return; 
+    return;
   }
 
   if (*size - 1 == 0) // check if the only element in the array is being deleted: this used to be in the removeByIndex function
   {
     *arr = NULL;
     *size = 0;
+    return;
   }
 
   // Free memory for the books being removed
@@ -83,7 +85,7 @@ void removeFromIndex(char ***arr, size_t *size, int i)
     return;
   }
 
-  if (i == *size-1)
+  if (i == *size - 1)
   {
     deallocateSpaceForBooks(1, arr, size);
     return;
@@ -165,14 +167,22 @@ int main()
 
         makeSpaceForNewBooks(&arr, size, booksToAdd);
 
-        // Input new book names
-        for (char **p = arr + (*size - booksToAdd); p < arr + *size; p++)
+        if (*size == 1)
         {
           printf("Add the new book: ");
           scanf("%s", book);
-          addBook(arr, book, p - arr); // Add at new positions using pointer arithmetic
+          addBook(arr, book, 0);
         }
-
+        else
+        {
+          // Input new book names
+          for (size_t i = (*size-booksToAdd); i < (*size); i++) // out of bounds
+          {
+            printf("Add the new book: ");
+            scanf("%s", book);
+            addBook(arr, book, i);
+          }
+        }
         printArr(arr, size);
         break;
       }
