@@ -33,7 +33,7 @@ void makeSpaceForNewBooks(char ***arr, size_t *size, size_t numOfNewBooks)
     *size += numOfNewBooks;
     char **expandedList = (char **)realloc(*arr, (*size) * sizeof(char *)); // i got a sigbus error here 'cause i was reading garbage values
 
-    for (size_t i = *size; i < *size; i++)
+    for (size_t i = *size-numOfNewBooks; i < *size; i++)
     {
       *(expandedList + i) = calloc(MAX_LENGTH, sizeof(char));
     }
