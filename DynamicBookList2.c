@@ -33,7 +33,7 @@ void makeSpaceForNewBooks(char ***arr, size_t *size, size_t numOfNewBooks)
     *size += numOfNewBooks;
     char **expandedList = (char **)realloc(*arr, (*size) * sizeof(char *)); // i got a sigbus error here 'cause i was reading garbage values
 
-    for (size_t i = *size-numOfNewBooks; i < *size; i++)
+    for (size_t i = *size - numOfNewBooks; i < *size; i++)
     {
       *(expandedList + i) = calloc(MAX_LENGTH, sizeof(char));
     }
@@ -77,24 +77,38 @@ void deallocateSpaceForBooks(size_t numOfBooks, char ***arr, size_t *size)
   *size = *size - numOfBooks;
 }
 
-void removeFromIndex(char ***arr, size_t *size, int i)
+void removeFromIndex(char ***arr, size_t *size, int index)
 {
-  if (arr == NULL || *size == 0)
+  if (arr == NULL || *size == 0) // empty list case
   {
     fprintf(stderr, "You cannot delete from an empty list.\n");
     return;
   }
 
-  if (i == *size - 1)
+  if (index == *size - 1) // last element in the array case
   {
     deallocateSpaceForBooks(1, arr, size);
     return;
   }
 
-  if (i == 0)
+  // Shift elements down to fill the gap
+  for (size_t i = index; i < *size - 1; i++)
   {
-    printf("Not implemented.\n");
+    // (*arr)[i] = (*arr)[i + 1];
+    *(*(arr) + i) = *(*(arr) + i + 1);
   }
+
+  // Shrink the array by one element
+  char **newArr = realloc(*arr, (*size - 1) * sizeof(char *));
+
+  if (newArr == NULL && *size - 1 > 0)
+  { // Only error if size > 1
+    fprintf(stderr, "Reallocation failed.\n");
+    return;
+  }
+
+  *arr = newArr;
+  (*size)--;
 }
 
 void removeFromName() {}
@@ -176,7 +190,7 @@ int main()
         else
         {
           // Input new book names
-          for (size_t i = (*size-booksToAdd); i < (*size); i++) // out of bounds
+          for (size_t i = (*size - booksToAdd); i < (*size); i++) // out of bounds
           {
             printf("Add the new book: ");
             scanf("%s", book);
