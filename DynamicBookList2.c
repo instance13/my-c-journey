@@ -1,8 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_LENGTH 40
+
+char *toUpperCase(char *str)
+{
+  char *upperCaseString = calloc(MAX_LENGTH, sizeof(char));
+  strncpy(upperCaseString, str, MAX_LENGTH);
+  for (int i = 0; *(str + i) != '\0'; i++)
+  {
+    *(upperCaseString + i) = toupper((unsigned char)*(str + i)); // Convert each character to uppercase
+  }
+  return upperCaseString;
+}
 
 char **allocateArray(size_t *size)
 {
@@ -111,7 +123,19 @@ void removeFromIndex(char ***arr, size_t *size, int index)
   (*size)--;
 }
 
-void removeFromName() {}
+void removeFromName(char ***arr, size_t *size, char *string)
+{
+  for (size_t i = 0; i < *size; i++)
+  {
+    // Compare the book name with the input string, case-insensitively
+    if (strcmp(toUpperCase(*(*(arr) + i)), toUpperCase(string)) == 0)
+    {
+      removeFromIndex(arr, size, i);
+      printf("Book '%s' removed.\n", string);
+      return;
+    }
+  }
+}
 
 void printArr(char **arr, size_t *size)
 {
@@ -139,12 +163,18 @@ int main()
   printf("Enter a size for your list of books: ");
   scanf("%zu", size);
 
+  getchar(); // get \n character left by scanf
+
+  // fgets((char *)size, 9, stdin);
+
   char **arr = allocateArray(size);
 
   for (size_t i = 0; i < *size; i++)
   {
     printf("Enter a book's name for position %zu: ", i);
-    scanf("%s", book);
+    // scanf("%s", book);
+    fgets(book, MAX_LENGTH, stdin);
+    book[strcspn(book, "\n")] = 0;
 
     if (strlen(book))
     {
@@ -153,7 +183,7 @@ int main()
     }
     else
     {
-      printf("There was a problem with the input.\n");
+      printf("Input's length is 0.\n");
     }
   }
 
@@ -169,7 +199,7 @@ int main()
     int subOption = 0;
     do
     {
-      printf("---\n1. Add books to the top.\n2. Remove books from the top.\n3. Remove a specific book by index.\n4. Remove a specific book by name.\n5. Exit editing.\n---\n");
+      printf("---\n1. Add books to the top.\n2. Remove books from the top.\n3. Remove a specific book by index.\n4. Remove a specific book by name.\n5. Add a book to a specific index\n6. Exit editing.\n---\n");
       scanf("%d", &subOption);
       switch (subOption)
       {
@@ -178,13 +208,15 @@ int main()
         size_t booksToAdd = 0;
         printf("How many new books will you enter?: ");
         scanf("%zu", &booksToAdd);
+        getchar();
 
         makeSpaceForNewBooks(&arr, size, booksToAdd);
 
         if (*size == 1)
         {
           printf("Add the new book: ");
-          scanf("%s", book);
+          fgets(book, MAX_LENGTH, stdin);
+          book[strcspn(book, "\n")] = 0;
           addBook(arr, book, 0);
         }
         else
@@ -193,7 +225,8 @@ int main()
           for (size_t i = (*size - booksToAdd); i < (*size); i++) // out of bounds
           {
             printf("Add the new book: ");
-            scanf("%s", book);
+            fgets(book, MAX_LENGTH, stdin);
+            book[strcspn(book, "\n")] = 0;
             addBook(arr, book, i);
           }
         }
@@ -223,16 +256,35 @@ int main()
       }
       case 4:
       {
+        char str[MAX_LENGTH] = "";
+        printf("Enter the book you want to delete: ");
+        // fgets(str, MAX_LENGTH, stdin);
+        scanf("%s", str);
+        removeFromName(&arr, size, str);
+        printArr(arr, size);
         break;
       }
       case 5:
+      {
+        // int i = 0;
+        // printf("Enter an index to add a book: ");
+        // scanf("%d", &i);
+
+        // printf("Enter the book's name: ");
+        // scanf("%s", book);
+
+        // addToIndex(arr, size, book, i);
+        printf("Not implemented.\n");
+        break;
+      }
+      case 6:
       {
         printf("You finished editing your book list.\n");
         printArr(arr, size);
         break;
       }
       }
-    } while (subOption != 5);
+    } while (subOption != 6);
   }
   else
   {
